@@ -5,6 +5,7 @@
 {
     MetalRenderer* renderer;
     Scene scene;
+    int frame;
 }
 
 - (id) initWithFrame: (NSRect) frameRect
@@ -18,6 +19,8 @@
         NSLog(@"Failed to create metal device");
         return nil;
     }
+
+    frame = 0;
 
     // -------------------------------------------------------------------------
     // Initialize MTKView
@@ -48,6 +51,9 @@
 
 - (void) drawRect: (CGRect) rect
 {
+    frame++;
+    scene.t1.updateRotationAnimation(frame * 0.01f);
+
     const NSRect viewport =
         NSMakeRect(0, 0, self.drawableSize.width, self.drawableSize.height);
 

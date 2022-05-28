@@ -1,6 +1,7 @@
 #import "MetalRenderer.h"
 #include <array>
 #include "Common.h"
+#include "Math.h"
 #include "Scene.h"
 
 @implementation MetalRenderer
@@ -161,8 +162,15 @@
     dispatch_semaphore_wait(uniformSemaphore, DISPATCH_TIME_FOREVER);
 
     uniformBufferIndex = (uniformBufferIndex + 1) % c_uniformBufferCount;
-    Uniforms* uniforms = (Uniforms*) [uniformBuffers[uniformBufferIndex] contents];
-    uniforms->projectionViewModel = scene.t1.transform;
+    Uniforms* uniforms =
+        (Uniforms*) [uniformBuffers[uniformBufferIndex] contents];
+
+    const simd_float4x4 model = scene.t1.transform;
+    const simd_float4x4 view = scene.camera.view;
+    const simd_float4x4 proj = scene.camera.projection;
+
+    uniforms->projectionViewModel =
+        matrix_multiply(proj, matrix_multiply(view, model));
 
     // -------------------------------------------------------------------------
     // Command buffer

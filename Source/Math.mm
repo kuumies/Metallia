@@ -6,30 +6,24 @@ simd_float4x4 perspective(
     float zNear,
     float zFar)
 {
-    float ys = 1.0f / tanf(fovY * 0.5);
-    float xs = ys / aspectRatio;
-    float zs = zFar / (zFar - zNear);
+    const float sy = 1.0f / std::tan(fovY * 0.5f);
+    const float sx = sy / aspectRatio;
+    const float zRange = zFar - zNear;
+    const float sz = -(zFar + zNear) / zRange;
+    const float swz = -2.0f * zFar * zNear / zRange;
 
-    return simd_matrix_from_rows(
-        simd_float4{ xs,  0,   0,   0           },
-        simd_float4{ 0,   ys,  0,   0           },
-        simd_float4{ 0,   0,   zs,  -zNear * zs },
-        simd_float4{ 0,   0,   1,   0           }
-    );
-
-#if 0
-    return matrix_identity_float4x4;
-    float ys = 1 / tanf(fovyRadians * 0.5);
-    float xs = ys / aspect;
-    float zs = farZ / (farZ - nearZ);
-    return matrix_make_rows(xs,  0,  0,           0,
-                             0, ys,  0,           0,
-                             0,  0, zs, -nearZ * zs,
-                             0,  0,  1,           0 );
-#endif
+    return simd_float4x4{
+        simd_float4{ sx,  0,   0,    0 },
+        simd_float4{ 0,   sy,  0,    0 },
+        simd_float4{ 0,   0,   sz,  -1 },
+        simd_float4{ 0,   0,   swz,  0 }};
 }
 
-matrix_float4x4 translate(float x, float y, float z)
+simd_float4x4 translate(float x, float y, float z)
 {
-    return matrix_identity_float4x4;
+    return simd_float4x4{
+        simd_float4{ 1,  0,  0,  0 },
+        simd_float4{ 0,  1,  0,  0 },
+        simd_float4{ 0,  0,  1,  0 },
+        simd_float4{ x,  y,  z,  1 }};
 }

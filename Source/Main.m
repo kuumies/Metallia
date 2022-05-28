@@ -79,7 +79,8 @@ int main(int argc, const char* argv[])
     [window setDelegate:view];
 
     // Window controller
-    NSWindowController * windowController = [[NSWindowController alloc] initWithWindow:window];
+    NSWindowController * windowController =
+        [[NSWindowController alloc] initWithWindow:window];
     [windowController autorelease];
 
     [app run];
