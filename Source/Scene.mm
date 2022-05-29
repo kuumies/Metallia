@@ -22,6 +22,22 @@ void Model::updateTransform()
 }
 
 Camera::Camera()
-    : view(translate(0.0f, 0.0f, -2.0f))
-    , projection(perspective(45.0f * M_PI/180.0f, 1.0f, 0.1f, 150.0f))
-{}
+    : position{0.0f, 0.0f, 2.0f}
+    , rotation(simd_quaternion(0.0f, 0.0f, 0.0f, 1.0f))
+{
+    updateView();
+    updateProjection();
+}
+
+void Camera::updateView()
+{
+    simd_float4x4 m = matrix_identity_float4x4;
+    m = translate(position);
+    m = matrix_multiply(simd_matrix4x4(rotation), m);
+    view = simd_inverse(m);
+}
+
+void Camera::updateProjection()
+{
+    projection = perspective(fovY * M_PI / 180.0f, aspect, zNear, zFar);
+}

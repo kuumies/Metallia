@@ -13,32 +13,32 @@ int main(int argc, const char* argv[])
 
     NSApplication* app = [NSApplication sharedApplication];
     [app setActivationPolicy:NSApplicationActivationPolicyRegular];
-    [app activateIgnoringOtherApps:YES];
+    [app activateIgnoringOtherApps: YES];
 
     // -------------------------------------------------------------------------
     // Menu
 
     NSString* processName = [[NSProcessInfo processInfo] processName];
-    NSString* quitMenuString = [[NSString alloc] initWithString:@"Quit "];
+    NSString* quitMenuString = [[NSString alloc] initWithString: @"Quit "];
     [quitMenuString autorelease];
-    quitMenuString = [quitMenuString stringByAppendingString:processName];
+    quitMenuString = [quitMenuString stringByAppendingString: processName];
 
     NSMenuItem* quitMenuItem = [NSMenuItem alloc];
-    [quitMenuItem setTitle:quitMenuString];
+    [quitMenuItem setTitle: quitMenuString];
     [quitMenuItem setTarget: app];
     [quitMenuItem setAction: @selector(terminate:)];
     [quitMenuItem setKeyEquivalent: @"q"];
     [quitMenuItem autorelease];
 
     NSMenu* appMenu = [[NSMenu new] autorelease];
-    [appMenu addItem:quitMenuItem];
+    [appMenu addItem: quitMenuItem];
 
     NSMenuItem* mainMenuItem = [[NSMenuItem new] autorelease];
-    [mainMenuItem setSubmenu:appMenu];
+    [mainMenuItem setSubmenu: appMenu];
 
     NSMenu* mainMenu = [[NSMenu new] autorelease];
-    [mainMenu addItem:mainMenuItem];
-    [app setMainMenu:mainMenu];
+    [mainMenu addItem: mainMenuItem];
+    [app setMainMenu: mainMenu];
 
     // -------------------------------------------------------------------------
     // View
@@ -52,7 +52,7 @@ int main(int argc, const char* argv[])
         viewRect.size.height);
 
     KFIMetalView* view = [KFIMetalView alloc];
-    view = [view initWithFrame:windowRect];
+    view = [view initWithFrame: windowRect];
     [view autorelease];
 
     // -------------------------------------------------------------------------
@@ -65,22 +65,22 @@ int main(int argc, const char* argv[])
             NSWindowStyleMaskMiniaturizable;
 
     NSWindow* window = [NSWindow alloc];
-    [window initWithContentRect:windowRect
-            styleMask:windowFlags
-            backing:NSBackingStoreBuffered
-            defer:NO];
+    [window initWithContentRect: windowRect
+                      styleMask: windowFlags
+                        backing: NSBackingStoreBuffered
+                          defer: NO];
     [window setTitle:processName];
-    [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+    [window setCollectionBehavior: NSWindowCollectionBehaviorFullScreenPrimary];
     [window orderFrontRegardless];
     [window setLevel: NSNormalWindowLevel];
     [window makeKeyAndOrderFront: window];
     [window autorelease];
-    [window setContentView:view];
-    [window setDelegate:view];
+    [window setContentView: view];
+    [window setDelegate: view];
 
     // Window controller
     NSWindowController * windowController =
-        [[NSWindowController alloc] initWithWindow:window];
+        [[NSWindowController alloc] initWithWindow: window];
     [windowController autorelease];
 
     [app run];

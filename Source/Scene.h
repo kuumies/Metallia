@@ -1,5 +1,6 @@
 #pragma once
 
+#import <Metal/Metal.h>
 #include <array>
 #include <stdint.h>
 #include <simd/simd.h>
@@ -15,6 +16,21 @@ public:
         Triangle
     };
 
+    // Vertex front face winding order
+    enum class Winding
+    {
+        Clockwise,
+        CounterClockwise
+    };
+
+    // Face culling
+    enum class Culling
+    {
+        None,
+        Front,
+        Back
+    };
+
     // Defines the vertex attributes
     enum Attributes
     {
@@ -23,9 +39,14 @@ public:
     };
 
     PrimitiveType primitiveType{PrimitiveType::Triangle};
+    Winding winding{Winding::CounterClockwise};
+    Culling culling{Culling::Back};
     int attributes = Attributes::Position | Attributes::Color;
+    bool useIndices{true};
     std::vector<float> vertexData;
     std::vector<unsigned> indexData;
+    id<MTLBuffer> vertexBuffer;
+    id<MTLBuffer> indexBuffer;
 };
 
 // Defines a rendered object
@@ -55,7 +76,17 @@ struct Camera
 {
     Camera();
 
+    void updateView();
+    void updateProjection();
+
+    simd_float3 position;
+    simd_quatf rotation;
     simd_float4x4 view;
+
+    float fovY{45.0f};
+    float aspect{1.0f};
+    float zNear{0.1f};
+    float zFar{150.0f};
     simd_float4x4 projection;
 };
 

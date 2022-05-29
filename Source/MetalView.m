@@ -25,19 +25,9 @@
     // -------------------------------------------------------------------------
     // Initialize MTKView
 
-    self = [super initWithFrame:frameRect device:device];
+    self = [super initWithFrame: frameRect device: device];
     if (!self)
         return nil;
-
-    /*
-    scene.t1.vertices =
-    {
-        Vertex{ { -0.5f, -0.5f, 0.0f }, {1.0f,  1.0f,   1.0f,  1.0f } },
-        Vertex{ { -0.0f,  0.5f, 0.0f }, {  0,   1.0f,     0,   1.0f } },
-        Vertex{ {  0.5f, -0.5f, 0.0f }, {  0,      0,   1.0f,  1.0f } },
-    };
-    scene.t1.updateRotationAnimation(0.0f);
-    */
 
     Mesh triMesh;
     triMesh.vertexData = {
@@ -56,10 +46,10 @@
     // Initialize renderer
 
     renderer = [[[MetalRenderer alloc]
-            initWithFrame:frameRect
-                   device:device
-              sampleCount:self.sampleCount
-                    scene:scene] autorelease];
+            initWithFrame: frameRect
+                   device: device
+              sampleCount: self.sampleCount
+                    scene: &scene] autorelease];
 
     return self;
 }
@@ -67,18 +57,19 @@
 - (void) drawRect: (CGRect) rect
 {
     frame++;
-    scene.m.position = simd_float3{1.0f, 1.0f, 0.0f};
+
+    //scene.m.position = simd_float3{1.0f, 1.0f, 0.0f};
+    //scene.m.scale = simd_float3{0.5f, 0.5f, 0.5f};
     scene.m.rotation = simd_quaternion(float(frame * 0.01f), simd_float3{0.0f, 0.0f, 1.0f});
-    scene.m.scale = simd_float3{0.5f, 0.5f, 0.5f};
     scene.m.updateTransform();
 
     const NSRect viewport =
         NSMakeRect(0, 0, self.drawableSize.width, self.drawableSize.height);
 
-    [renderer render:viewport
-        renderPassDescriptor:self.currentRenderPassDescriptor
-                    drawable:self.currentDrawable
-                       scene:scene];
+    [renderer renderWithFrame: viewport
+         renderPassDescriptor: self.currentRenderPassDescriptor
+                     drawable: self.currentDrawable
+                        scene: &scene];
 
     [super drawRect:rect];
 }

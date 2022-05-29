@@ -5,13 +5,14 @@
 
 // Incase of an error renderer will log the error and exit the app
 @interface MetalRenderer : NSObject
-    - (id) initWithFrame: (NSRect) frameRect
-                  device: (id<MTLDevice>) device
-             sampleCount: (NSUInteger) sampleCount
-                   scene: (Scene) scene;
 
-    - (void) render: (NSRect) screenRect
- renderPassDescriptor: (MTLRenderPassDescriptor*) renderPassDescriptor
-             drawable: (id<CAMetalDrawable>) drawable
-             scene: (Scene) scene;
+- (id) initWithFrame: (NSRect) frameRect
+              device: (id<MTLDevice>) device
+         sampleCount: (NSUInteger) sampleCount
+               scene: (Scene*) scene;
+
+- (void) renderWithFrame: (NSRect) screenRect
+    renderPassDescriptor: (MTLRenderPassDescriptor*) renderPassDescriptor
+                drawable: (id<CAMetalDrawable>) drawable
+                   scene: (Scene*) scene;
 @end

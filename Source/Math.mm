@@ -41,7 +41,6 @@ simd_float4x4 trs(const simd_float3& position,
     m = translate(position);
     m = matrix_multiply(simd_matrix4x4(rotation), m);
     m = matrix_multiply(scale(s), m);
-
     return m;
 }
 
