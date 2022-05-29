@@ -27,6 +27,7 @@ int main(int argc, const char* argv[])
     [quitMenuItem setTitle: quitMenuString];
     [quitMenuItem setTarget: app];
     [quitMenuItem setAction: @selector(terminate:)];
+    [quitMenuItem setKeyEquivalentModifierMask: NSCommandKeyMask];
     [quitMenuItem setKeyEquivalent: @"q"];
     [quitMenuItem autorelease];
 
@@ -86,8 +87,6 @@ int main(int argc, const char* argv[])
     [app run];
 
     [pool drain];
-
-    NSLog(@"hello");
 
     return EXIT_SUCCESS;
 }

@@ -47,6 +47,8 @@ public:
     std::vector<unsigned> indexData;
     id<MTLBuffer> vertexBuffer;
     id<MTLBuffer> indexBuffer;
+    static constexpr int c_uniformBufferCount = 3;
+    std::array<id<MTLBuffer>, c_uniformBufferCount> uniformBuffers;
 };
 
 // Defines a rendered object
@@ -93,5 +95,5 @@ struct Camera
 struct Scene
 {
     Camera camera;
-    Model m;
+    std::vector<Model> models;
 };

@@ -20,9 +20,9 @@
     id<MTLDepthStencilState> depthStencilState;
     id<MTLRenderPipelineState> pipelineState;
 
-    // Uniform buffers
-    constexpr int c_uniformBufferCount = 3;
-    std::array<id<MTLBuffer>, c_uniformBufferCount> uniformBuffers;
+//    // Uniform buffers
+//    constexpr int c_uniformBufferCount = 3;
+//    std::array<id<MTLBuffer>, c_uniformBufferCount> uniformBuffers;
     int uniformBufferIndex;
     dispatch_semaphore_t uniformSemaphore;
 
@@ -117,35 +117,34 @@
     // -------------------------------------------------------------------------
     // Mesh buffers
 
-    for (Mesh& mesh : scene->m.meshes)
+    for (Model& model : scene->models)
     {
-        mesh.vertexBuffer =
-            [device newBufferWithBytes: mesh.vertexData.data()
-                                length: mesh.vertexData.size() * sizeof(float)
-                               options: MTLResourceStorageModePrivate];
+        for (Mesh& mesh : model.meshes)
+        {
+            mesh.vertexBuffer =
+                [device newBufferWithBytes: mesh.vertexData.data()
+                                    length: mesh.vertexData.size() * sizeof(float)
+                                   options: MTLResourceStorageModePrivate];
 
-        mesh.indexBuffer =
-            [device newBufferWithBytes: mesh.indexData.data()
-                                length: mesh.indexData.size() * sizeof(unsigned)
-                               options: MTLResourceStorageModePrivate];
-    }
+            mesh.indexBuffer =
+                [device newBufferWithBytes: mesh.indexData.data()
+                                    length: mesh.indexData.size() * sizeof(unsigned)
+                                   options: MTLResourceStorageModePrivate];
 
-    // -------------------------------------------------------------------------
-    // Uniforms
-
-    // Buffers
-    for (int ubIndex = 0; ubIndex < c_uniformBufferCount; ++ubIndex)
-    {
-        uniformBuffers[ubIndex] =
-            [device newBufferWithLength: sizeof(Uniforms)
-                                options: MTLResourceCPUCacheModeWriteCombined];
+            for (int ubIndex = 0; ubIndex < Mesh::c_uniformBufferCount; ++ubIndex)
+            {
+                mesh.uniformBuffers[ubIndex] =
+                    [device newBufferWithLength: sizeof(Uniforms)
+                                        options: MTLResourceCPUCacheModeWriteCombined];
+            }
+        }
     }
 
     // Current buffer index
     uniformBufferIndex = 0;
 
     // Sync for buffers, starts signaled
-    uniformSemaphore = dispatch_semaphore_create(c_uniformBufferCount);
+    uniformSemaphore = dispatch_semaphore_create(Mesh::c_uniformBufferCount);
 
     // -------------------------------------------------------------------------
     // Command queue
@@ -167,16 +166,7 @@
 
     dispatch_semaphore_wait(uniformSemaphore, DISPATCH_TIME_FOREVER);
 
-    uniformBufferIndex = (uniformBufferIndex + 1) % c_uniformBufferCount;
-    Uniforms* uniforms =
-        (Uniforms*) [uniformBuffers[uniformBufferIndex] contents];
-
-    const simd_float4x4 model = scene->m.transform;
-    const simd_float4x4 view = scene->camera.view;
-    const simd_float4x4 proj = scene->camera.projection;
-
-    uniforms->projectionViewModel =
-        matrix_multiply(proj, matrix_multiply(view, model));
+    uniformBufferIndex = (uniformBufferIndex + 1) % Mesh::c_uniformBufferCount;
 
     // -------------------------------------------------------------------------
     // Command buffer
@@ -200,67 +190,80 @@
     [encoder setDepthStencilState: depthStencilState];
     [encoder setRenderPipelineState: pipelineState];
 
-    // Uniform buffer
-    [encoder setVertexBuffer: uniformBuffers[uniformBufferIndex]
-                      offset: 0
-                     atIndex: FrameUniformBuffer];
-
-    for (const Mesh& mesh : scene->m.meshes)
+    for (Model& m : scene->models)
     {
-        // Front face winding
-        MTLWinding mtlWinding;
-        switch(mesh.winding)
+        const simd_float4x4 model = m.transform;
+        const simd_float4x4 view = scene->camera.view;
+        const simd_float4x4 proj = scene->camera.projection;
+
+        for (Mesh& mesh : m.meshes)
         {
-            case Mesh::Winding::Clockwise:
-                mtlWinding = MTLWindingClockwise;
-                break;
+            Uniforms* uniforms =
+                (Uniforms*) [mesh.uniformBuffers[uniformBufferIndex] contents];
 
-            case Mesh::Winding::CounterClockwise:
-                mtlWinding = MTLWindingCounterClockwise;
-                break;
-        }
-        [encoder setFrontFacingWinding: mtlWinding];
+            uniforms->projectionViewModel =
+                matrix_multiply(proj, matrix_multiply(view, model));
 
-        // Face culling
-        MTLCullMode mtlCulling;
-        switch(mesh.culling)
-        {
-            case Mesh::Culling::None:  mtlCulling = MTLCullModeNone;  break;
-            case Mesh::Culling::Back:  mtlCulling = MTLCullModeBack;  break;
-            case Mesh::Culling::Front: mtlCulling = MTLCullModeFront; break;
-        }
+            // Uniform buffer
+            [encoder setVertexBuffer: mesh.uniformBuffers[uniformBufferIndex]
+                              offset: 0
+                             atIndex: FrameUniformBuffer];
 
-        [encoder setCullMode: mtlCulling];
+            // Front face winding
+            MTLWinding mtlWinding;
+            switch(mesh.winding)
+            {
+                case Mesh::Winding::Clockwise:
+                    mtlWinding = MTLWindingClockwise;
+                    break;
 
-        // Vertex buffer
-        [encoder setVertexBuffer: mesh.vertexBuffer
-                          offset: 0
-                         atIndex: MeshVertexBuffer];
+                case Mesh::Winding::CounterClockwise:
+                    mtlWinding = MTLWindingCounterClockwise;
+                    break;
+            }
+            [encoder setFrontFacingWinding: mtlWinding];
 
-        // primitive
-        MTLPrimitiveType mtlPrimitiveType;
-        switch(mesh.primitiveType)
-        {
-            case Mesh::PrimitiveType::Triangle:
-                mtlPrimitiveType = MTLPrimitiveTypeTriangle;
-                break;
-        }
+            // Face culling
+            MTLCullMode mtlCulling;
+            switch(mesh.culling)
+            {
+                case Mesh::Culling::None:  mtlCulling = MTLCullModeNone;  break;
+                case Mesh::Culling::Back:  mtlCulling = MTLCullModeBack;  break;
+                case Mesh::Culling::Front: mtlCulling = MTLCullModeFront; break;
+            }
 
-        // Draw
-        if (mesh.useIndices)
-        {
-            NSUInteger indexCount = [mesh.indexBuffer length] / sizeof(unsigned);
-            [encoder drawIndexedPrimitives: mtlPrimitiveType
-                                indexCount: indexCount
-                                 indexType: MTLIndexTypeUInt32
-                               indexBuffer: mesh.indexBuffer
-                         indexBufferOffset: 0];
-        }
-        else
-        {
-            [encoder drawPrimitives: mtlPrimitiveType
-                        vertexStart: 0
-                        vertexCount: [mesh.vertexBuffer length]];
+            [encoder setCullMode: mtlCulling];
+
+            // Vertex buffer
+            [encoder setVertexBuffer: mesh.vertexBuffer
+                              offset: 0
+                             atIndex: MeshVertexBuffer];
+
+            // primitive
+            MTLPrimitiveType mtlPrimitiveType;
+            switch(mesh.primitiveType)
+            {
+                case Mesh::PrimitiveType::Triangle:
+                    mtlPrimitiveType = MTLPrimitiveTypeTriangle;
+                    break;
+            }
+
+            // Draw
+            if (mesh.useIndices)
+            {
+                NSUInteger indexCount = [mesh.indexBuffer length] / sizeof(unsigned);
+                [encoder drawIndexedPrimitives: mtlPrimitiveType
+                                    indexCount: indexCount
+                                     indexType: MTLIndexTypeUInt32
+                                   indexBuffer: mesh.indexBuffer
+                             indexBufferOffset: 0];
+            }
+            else
+            {
+                [encoder drawPrimitives: mtlPrimitiveType
+                            vertexStart: 0
+                            vertexCount: [mesh.vertexBuffer length]];
+            }
         }
     }
 
