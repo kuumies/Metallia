@@ -3,23 +3,25 @@
 #include <cstring>
 #include "Math.h"
 
-void Triangle::updateRotationAnimation(float angleRad)
-{
-    float sin = std::sin(angleRad);
-    float cos = std::cos(angleRad);
+Model::Model()
+    : Model(std::vector<Mesh>())
+{}
 
-    transform = matrix_identity_float4x4;
-    transform.columns[0][0] = cos;
-    transform.columns[0][1] = -sin;
-    transform.columns[1][0] = sin;
-    transform.columns[1][1] = cos;
+Model::Model(const std::vector<Mesh>& meshes)
+    : meshes(meshes)
+    , position{0, 0, 0}
+    , rotation(simd_quaternion(0.0f, 0.0f, 0.0f, 1.0f))
+    , scale{1, 1, 1}
+{
+    updateTransform();
+}
+
+void Model::updateTransform()
+{
+    transform = trs(position, rotation, scale);
 }
 
 Camera::Camera()
     : view(translate(0.0f, 0.0f, -2.0f))
     , projection(perspective(45.0f * M_PI/180.0f, 1.0f, 0.1f, 150.0f))
-{}
-
-Triangle::Triangle()
-    : transform(matrix_identity_float4x4)
 {}

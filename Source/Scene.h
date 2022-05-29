@@ -3,22 +3,51 @@
 #include <array>
 #include <stdint.h>
 #include <simd/simd.h>
+#include <vector>
 
-struct Vertex
+// Defines geometry and topology of rendered object
+class Mesh
 {
-    float position[3];
-    uint8_t color[4];
+public:
+    // Defines the primitive type
+    enum class PrimitiveType
+    {
+        Triangle
+    };
+
+    // Defines the vertex attributes
+    enum Attributes
+    {
+        Position = 0x01,
+        Color    = 0x02,
+    };
+
+    PrimitiveType primitiveType{PrimitiveType::Triangle};
+    int attributes = Attributes::Position | Attributes::Color;
+    std::vector<float> vertexData;
+    std::vector<unsigned> indexData;
 };
 
-struct Triangle
+// Defines a rendered object
+class Model
 {
-    Triangle();
+public:
+    // Constructs the model from geometry
+    // Initial transform is an identity
+    Model();
+    Model(const std::vector<Mesh>& meshes);
 
-    std::array<Vertex, 3> vertices;
+    // Updates the model's TRS transform.
+    void updateTransform();
 
+    // One or more geometries
+    std::vector<Mesh> meshes;
+
+    // Transform is composed of position, rotation and scale
+    simd_float3 position;
+    simd_quatf rotation;
+    simd_float3 scale;
     simd_float4x4 transform;
-
-    void updateRotationAnimation(float angleRad);
 };
 
 // Perspective camera
@@ -33,5 +62,5 @@ struct Camera
 struct Scene
 {
     Camera camera;
-    Triangle t1;
+    Model m;
 };

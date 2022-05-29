@@ -22,6 +22,7 @@
 
     // Buffers
     id<MTLBuffer> vertexBuffer;
+    id<MTLBuffer> indexBuffer;
 
     // Uniform buffers
     constexpr int c_uniformBufferCount = 3;
@@ -85,13 +86,13 @@
 
     MTLVertexAttributeDescriptor* color =
         vertexDescriptor.attributes[VertexAttributeIndex::Color];
-    color.format = MTLVertexFormatUChar4;
-    color.offset = sizeof(Vertex::position);
+    color.format = MTLVertexFormatFloat4;
+    color.offset = 3 * sizeof(float);
     color.bufferIndex = MeshVertexBuffer;
 
     MTLVertexBufferLayoutDescriptor* vertexBufferLayout =
         vertexDescriptor.layouts[MeshVertexBuffer];
-    vertexBufferLayout.stride = sizeof(Vertex);
+    vertexBufferLayout.stride = 7 * sizeof(float);
     vertexBufferLayout.stepRate = 1;
     vertexBufferLayout.stepFunction = MTLVertexStepFunctionPerVertex;
 
@@ -119,11 +120,14 @@
     }
 
     // -------------------------------------------------------------------------
-    // Triangle vertex buffer
+    // Mesh buffers
 
-    vertexBuffer = [device newBufferWithBytes: scene.t1.vertices.data()
-                                       length: sizeof(scene.t1.vertices)
+    vertexBuffer = [device newBufferWithBytes: scene.m.meshes[0].vertexData.data()
+                                       length: scene.m.meshes[0].vertexData.size() * sizeof(float)
                                       options: MTLResourceStorageModePrivate];
+    indexBuffer = [device newBufferWithBytes: scene.m.meshes[0].indexData.data()
+                                      length: scene.m.meshes[0].indexData.size() * sizeof(unsigned)
+                                     options: MTLResourceStorageModePrivate];
 
     // -------------------------------------------------------------------------
     // Uniforms
@@ -165,7 +169,8 @@
     Uniforms* uniforms =
         (Uniforms*) [uniformBuffers[uniformBufferIndex] contents];
 
-    const simd_float4x4 model = scene.t1.transform;
+    //const simd_float4x4 model = matrix_identity_float4x4; //scene.t1.transform;
+    const simd_float4x4 model = scene.m.transform;
     const simd_float4x4 view = scene.camera.view;
     const simd_float4x4 proj = scene.camera.projection;
 
@@ -194,20 +199,30 @@
     [encoder setDepthStencilState: depthStencilState];
     [encoder setRenderPipelineState: pipelineState];
 
+    // Mesh winding and culling
+    [encoder setFrontFacingWinding:MTLWindingCounterClockwise];
+    [encoder setCullMode:MTLCullModeBack];
+
     // Uniform buffer
     [encoder setVertexBuffer: uniformBuffers[uniformBufferIndex]
-             offset: 0
-             atIndex: FrameUniformBuffer];
+                      offset: 0
+                     atIndex: FrameUniformBuffer];
 
     // Vertex buffer
     [encoder setVertexBuffer: vertexBuffer
-             offset: 0
-             atIndex: MeshVertexBuffer];
+                      offset: 0
+                     atIndex: MeshVertexBuffer];
 
     // Draw triangle
-    [encoder drawPrimitives: MTLPrimitiveTypeTriangle
-             vertexStart: 0
-             vertexCount: 3];
+    //[encoder drawPrimitives: MTLPrimitiveTypeTriangle
+    //         vertexStart: 0
+    //        vertexCount: 3];
+
+    [encoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle
+                        indexCount:[indexBuffer length] / sizeof(unsigned)
+                         indexType:MTLIndexTypeUInt32
+                       indexBuffer:indexBuffer
+                 indexBufferOffset:0];
 
     // Done
     [encoder endEncoding];

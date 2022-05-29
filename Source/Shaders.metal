@@ -6,13 +6,13 @@ using namespace metal;
 struct VertexInput
 {
     float3 position [[attribute(VertexAttributeIndex::Position)]];
-    half4 color [[attribute(VertexAttributeIndex::Color)]];
+    float4 color [[attribute(VertexAttributeIndex::Color)]];
 };
 
 struct ShaderInOut
 {
     float4 position [[position]];
-    half4  color;
+    float4  color;
 };
 
 vertex ShaderInOut vert(
@@ -23,12 +23,12 @@ vertex ShaderInOut vert(
 
     ShaderInOut out;
     out.position = uniforms.projectionViewModel * pos4;
-    out.color = in.color / 255.0;
+    out.color = in.color;
 
     return out;
 }
 
 fragment half4 frag(ShaderInOut in [[stage_in]])
 {
-    return in.color;
+    return half4(in.color);
 }

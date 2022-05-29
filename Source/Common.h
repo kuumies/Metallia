@@ -16,7 +16,7 @@ enum BufferIndex  {
 
 struct Uniforms
 {
-    simd::float4x4 projectionViewModel;
+    simd_float4x4 projectionViewModel;
 };
 
 #endif
