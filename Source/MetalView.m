@@ -29,6 +29,9 @@
     if (!self)
         return nil;
 
+    // -------------------------------------------------------------------------
+    // Initialize scene
+
     Mesh triMesh;
     triMesh.vertexData = {
         -0.5f, -0.5f, 0.0f,  1.0f, 1.0f, 1.0f, 1.0f,
@@ -61,12 +64,14 @@
 
     scene.models[0].position = simd_float3{0.2f, 0.0f, 0.0f};
     scene.models[0].scale = simd_float3{1.1f, 1.1f, 1.1f};
-    scene.models[0].rotation = simd_quaternion(float(frame * 0.01f), simd_float3{0.0f, 0.0f, 1.0f});
+    scene.models[0].rotation = simd_quaternion(float(frame * 0.01f),
+                                               simd_float3{0.0f, 0.0f, 1.0f});
     scene.models[0].updateTransform();
 
     scene.models[1].position = simd_float3{-0.2f, -0.0f, 0.1f};
     scene.models[0].scale = simd_float3{0.9f, 0.9f, 0.9f};
-    scene.models[1].rotation = simd_quaternion(-float(frame * 0.01f), simd_float3{0.0f, 0.0f, 1.0f});
+    scene.models[1].rotation = simd_quaternion(-float(frame * 0.01f),
+                                               simd_float3{0.0f, 0.0f, 1.0f});
     scene.models[1].updateTransform();
 
     const NSRect viewport =

@@ -20,9 +20,7 @@
     id<MTLDepthStencilState> depthStencilState;
     id<MTLRenderPipelineState> pipelineState;
 
-//    // Uniform buffers
-//    constexpr int c_uniformBufferCount = 3;
-//    std::array<id<MTLBuffer>, c_uniformBufferCount> uniformBuffers;
+    // Uniform buffer sync
     int uniformBufferIndex;
     dispatch_semaphore_t uniformSemaphore;
 
@@ -140,10 +138,10 @@
         }
     }
 
-    // Current buffer index
-    uniformBufferIndex = 0;
+    // -------------------------------------------------------------------------
+    // Uniform buffer sync
 
-    // Sync for buffers, starts signaled
+    uniformBufferIndex = 0;
     uniformSemaphore = dispatch_semaphore_create(Mesh::c_uniformBufferCount);
 
     // -------------------------------------------------------------------------
@@ -162,7 +160,7 @@
 {
     // -------------------------------------------------------------------------
     // Uniform buffer access synchronization
-    // Wait for one of the uniform semaphore to become available
+    // Wait for uniform semaphore to become available
 
     dispatch_semaphore_wait(uniformSemaphore, DISPATCH_TIME_FOREVER);
 
